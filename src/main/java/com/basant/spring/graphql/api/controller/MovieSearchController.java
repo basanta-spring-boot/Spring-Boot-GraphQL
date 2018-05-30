@@ -2,10 +2,13 @@ package com.basant.spring.graphql.api.controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -36,22 +39,31 @@ import graphql.schema.idl.TypeDefinitionRegistry;
 public class MovieSearchController {
 	@Autowired
 	private MovieService service;
-	// load graphqls file
-	@Value("classpath:movie.graphqls")
-	private Resource schemaResource;
+	
 	@Autowired
 	private allMoviesDataFetcher allMoviesDataFetcher;
 	@Autowired
 	private MovieDataFetcher movieDataFetcher;
 
+	private String graphQLSchemaFile = "movie.graphqls";
+	
 	private GraphQL graphQL;
 
 	// load schema at application start up
 	@PostConstruct
 	public void loadSchema() throws IOException {
-		// get the schema
-		File schemaFile = schemaResource.getFile();
-		// parse schema
+		InputStream inputStream = this.getClass()
+				.getClassLoader()
+				.getResourceAsStream(this.graphQLSchemaFile);
+		
+		File schemaFile = File.createTempFile(this.graphQLSchemaFile, ".temp");
+		try {
+		    FileUtils.copyInputStreamToFile(inputStream, schemaFile);
+		}catch(IOException ioE){
+			ioE.printStackTrace();
+		} finally {
+		    IOUtils.closeQuietly(inputStream);
+		}
 		TypeDefinitionRegistry typeRegistry = new SchemaParser().parse(schemaFile);
 		RuntimeWiring wiring = buildRuntimeWiring();
 		GraphQLSchema schema = new SchemaGenerator().makeExecutableSchema(typeRegistry, wiring);
