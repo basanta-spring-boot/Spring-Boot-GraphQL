@@ -17,6 +17,7 @@ public class MovieService {
 
 	@PostConstruct
 	public void initMovies() {
+		
 		List<Movie> movies = new ArrayList<>();
 		movies.add(new Movie("M17TZ", "Tiger Zinda Hai",
 				"22-12-2017", new String[] { "Salman Khan", "Katrina Kaif", "Sajjad Delfrooz", "Angad Bedi",
